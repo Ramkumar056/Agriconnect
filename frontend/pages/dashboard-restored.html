@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard – AgriConnect</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:sans-serif;background:#f0f4f0;color:#333}
+nav{background:#4a7c59;padding:1rem;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+.brand{font-size:1.5rem;font-weight:bold;color:#fff}
+.nav-right{display:flex;align-items:center;gap:1rem}
+.notif-bell{background:none;border:none;font-size:1.5rem;cursor:pointer;position:relative}
+.notif-badge{position:absolute;top:-8px;right:-8px;background:#ff4757;color:white;border-radius:50%;width:20px;height:20px;font-size:12px;display:flex;align-items:center;justify-content:center}
+.user-info{color:#fff}
+.btn-logout{background:#e74c3c;color:white;border:none;padding:.5rem 1rem;border-radius:4px;cursor:pointer}
+.tab-bar{background:#fff;padding:1rem;border-bottom:2px solid #4a7c59;display:flex;flex-wrap:wrap;gap:.5rem;max-width:1200px;margin:0 auto}
+.tab-btn{background:#ddd;border:none;padding:.75rem 1rem;cursor:pointer;border-radius:4px;font-size:.9rem;transition:all .2s}
+.tab-btn:hover{background:#4a7c59;color:white}
+.tab-btn.active{background:#4a7c59;color:white}
+.section{display:none;padding:2rem;max-width:1200px;margin:0 auto;background:#fff;margin-top:1rem;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.section.active{display:block}
+.product-card{background:#f9f9f9;padding:1rem;margin:1rem 0;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.product-emoji{font-size:2rem}
+.price{font-size:1.2rem;font-weight:bold;color:#27ae60}
+button{background:#4a7c59;color:white;border:none;padding:.5rem 1rem;border-radius:4px;cursor:pointer;margin:.25rem}
+button:hover{opacity:.9}
+.order-item,.notif,.education-item{padding:1rem;border-bottom:1px solid #eee}
+.status{padding:.25rem .5rem;border-radius:4px;background:#ddd;font-size:.8rem}
+.role-banner{padding:1rem;background:#f39c12;color:white;text-align:center;font-weight:bold}
+#msg{margin:1rem 0;padding:1rem;border-radius:4px;display:none}
+.msg-ok{background:#d4edda;color:#155724}
+.msg-err{background:#f8d7da;color:#721c24}
+.empty-msg{color:#666;text-align:center;padding:2rem}
+@media (max-width:768px){.tab-bar{flex-direction:column}.tab-btn{width:100%}}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">🌾 AgriConnect</span>
+  <div class="nav-right">
+    <button class="notif-bell" onclick="showTab('notifications')" title="Notifications">
+      🔔<span class="notif-badge" id="notifBadge">0</span>
+    </button>
+    <span class="user-info" id="navUser"></span>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<div class="tab-bar">
+  <button class="tab-btn" id="tab-marketplace" onclick="showTab('marketplace')">🛒 Marketplace</button>
+  <button class="tab-btn" id="tab-orders" onclick="showTab('orders')">📋 Orders</button>
+  <button class="tab-btn" id="tab-education" onclick="showTab('education')">📚 Education</button>
+  <button class="tab-btn" id="tab-ai" onclick="showTab('ai')">🤖 AI Tools</button>
+  <button class="tab-btn" id="tab-weather" onclick="showTab('weather')">🌤️ Weather</button>
+  <button class="tab-btn" id="tab-notifications" onclick="showTab('notifications')">🔔 Notifications</button>
+  <!-- Role-based tabs (shown by main.js) -->
+  <button class="tab-btn" id="tab-myproducts" onclick="showTab('myproducts')" style="display:none">🌱 My Products</button>
+  <button class="tab-btn" id="tab-profile" onclick="showTab('profile')">👤 Profile</button>
+  <button class="tab-btn" id="tab-admin" onclick="showTab('admin')" style="display:none">⚙️ Admin</button>
+</div>
+
+<main>
+  <div id="roleBanner" class="role-banner" style="display:none"></div>
+  <div id="msg"></div>
+
+  <!-- Marketplace Section -->
+  <div id="marketplace" class="section">
+    <h2>🛒 Marketplace</h2>
+    <div id="productGrid" class="empty-msg">Loading products...</div>
+  </div>
+
+  <!-- Orders Section -->
+  <div id="orders" class="section">
+    <h2>📋 Orders</h2>
+    <div id="ordersList" class="empty-msg">Loading orders...</div>
+  </div>
+
+  <!-- Education Section -->
+  <div id="education" class="section">
+    <h2>📚 Education</h2>
+    <div id="educationList" class="empty-msg">Loading education...</div>
+  </div>
+
+  <!-- AI Section -->
+  <div id="ai" class="section">
+    <h2>🤖 AI Tools</h2>
+    <div id="aiSection">
+      <input id="aiInput" placeholder="Enter crop name for advice">
+      <button onclick="getAICropAdvice()">Get Advice</button>
+      <div id="aiResult" class="empty-msg">Enter a crop for AI advice.</div>
+    </div>
+  </div>
+
+  <!-- Weather Section -->
+  <div id="weather" class="section">
+    <h2>🌤️ Weather</h2>
+    <div id="weatherSection">
+      <p>Enter city in prompt for weather.</p>
+    </div>
+  </div>
+
+  <!-- Notifications Section -->
+  <div id="notifications" class="section">
+    <h2>🔔 Notifications</h2>
+    <div id="notifList" class="empty-msg">Loading notifications...</div>
+  </div>
+
+  <!-- My Products Section (Farmer/Admin) -->
+  <div id="myproducts" class="section" style="display:none">
+    <h2>🌱 My Products</h2>
+    <button onclick="addProduct()">+ Add Product</button>
+    <div id="myProductsGrid" class="empty-msg">Loading your products...</div>
+  </div>
+
+  <!-- Profile Section -->
+  <div id="profile" class="section">
+    <h2>👤 Profile</h2>
+    <div id="profileForm" class="empty-msg">Loading profile...</div>
+  </div>
+
+  <!-- Admin Section -->
+  <div id="admin" class="section" style="display:none">
+    <h2>⚙️ Admin</h2>
+    <div id="adminList" class="empty-msg">Loading admin data...</div>
+  </div>
+</main>
+
+<script src="/js/auth.js"></script>
+<script src="/js/main.js"></script>
+
+</body>
+</html>
+
